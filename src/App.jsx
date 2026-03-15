@@ -435,8 +435,11 @@ export default function App() {
         <header className="header">
           <div className="header-inner">
             <div className="logo" onClick={() => { setShowForm(false); setSelectedAd(null); }}>
-              <span className="logo-icon">⛓</span>
-              <div>KINKONETOS<span>anúncios • brasil</span></div>
+              <span className="logo-icon">🇧🇷</span>
+              <div>
+                <span style={{background:"linear-gradient(135deg,#009c3b,#ffdf00,#002776)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text",fontFamily:"var(--font-head)",fontSize:"1.3rem",letterSpacing:"0.12em",fontWeight:"700"}}>BDSMBRAZIL</span>
+                <span style={{color:"var(--text2)",fontSize:"0.75rem",display:"block",letterSpacing:"0.2em"}}>anúncios • brasil</span>
+              </div>
             </div>
             <nav className="header-nav">
               <button className="btn btn-ghost" onClick={() => { setShowForm(false); setSelectedAd(null); }}>Anúncios</button>
@@ -447,7 +450,7 @@ export default function App() {
 
         {/* HERO */}
         <div className="hero">
-          <div className="hero-ornament">✦ ⛓ ✦</div>
+          <div className="hero-ornament" style={{color:"var(--gold)"}}>✦ 🇧🇷 ✦</div>
           <h1>Encontre sua Conexão</h1>
           <p>Anúncios anônimos para a comunidade BDSM brasileira</p>
           <div className="hero-stats">
@@ -839,7 +842,7 @@ export default function App() {
         </div>
 
         <footer className="footer">
-          <p>✦ KINKONETOS — Anúncios BDSM Anônimos no Brasil ✦</p>
+          <p>✦ BDSMBRAZIL — Anúncios BDSM Anônimos no Brasil ✦</p>
           <p>Comunicação via <a href="https://element.io" target="_blank" rel="noopener">Element / Matrix</a> — 100% criptografada e anônima</p>
           <p style={{marginTop:"0.5rem"}}>+18 apenas · Consentimento sempre · Seja SSC ou RACK</p>
         </footer>
