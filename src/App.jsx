@@ -64,7 +64,7 @@ const ESTADOS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG
 
 const POSICOES  = ["Dom","Sub","Switch","Dominant","Submissivo(a)","Sadista","Masoquista","Master","Slave","Pet","Owner","Rigger","Bunny"];
 const BUSCAS    = ["Dom","Sub","Switch","Dominant","Submissivo(a)","Sadista","Masoquista","Master","Slave","Pet","Owner","Rigger","Bunny","Parceiro(a) cena","Amizade kinky","Relação séria","Exploração"];
-const SEXOS     = ["Homem cis","Mulher cis","Homem trans","Mulher trans","Não-binário","Outro"];
+const SEXOS     = ["Homem","Mulher","Homem trans","Mulher trans","Não-binário","Outro"];
 const PRATICAS  = ["Bondage","Disciplina","Dominação","Submissão","Sadismo","Masoquismo","Roleplay","Wax play","Impact play","Shibari","Chastity","Age play","Pet play","Service submission","Outros"];
 
 const BADGE_COLORS = {
@@ -170,7 +170,7 @@ const styles = `
   .modal-close { background:none; border:none; color:var(--text3); font-size:1.4rem; cursor:pointer; line-height:1; }
   .modal-close:hover { color:var(--text); }
   .modal-body { padding:1.5rem; }
-  .modal-fotos { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:1.5rem; }
+  .modal-fotos { display:grid; grid-template-columns:repeat(1,1fr); gap:8px; margin-bottom:1.5rem; }
   .modal-foto { width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:2px; }
 
   /* FORM */
@@ -193,7 +193,7 @@ const styles = `
   .upload-zone:hover { border-color:var(--gold); }
   .upload-zone input { display:none; }
   .upload-zone p { color:var(--text3); font-size:0.88rem; }
-  .upload-previews { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:0.8rem; }
+  .upload-previews { display:grid; grid-template-columns:repeat(1,1fr); gap:8px; margin-top:0.8rem; }
   .upload-preview { position:relative; aspect-ratio:4/3; }
   .upload-preview img { width:100%; height:100%; object-fit:cover; border-radius:2px; }
   .upload-preview-remove { position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.7); border:none; color:white; cursor:pointer; border-radius:50%; width:20px; height:20px; font-size:0.8rem; display:flex; align-items:center; justify-content:center; }
@@ -313,8 +313,8 @@ export default function App() {
 
   // ── Photo previews ────────────────────────────────────────────────────────
   function handlePhotoSelect(e) {
-    const files = Array.from(e.target.files).slice(0, 3 - photoFiles.length);
-    const newFiles = [...photoFiles, ...files].slice(0, 3);
+    const files = Array.from(e.target.files).slice(0, 1 - photoFiles.length);
+    const newFiles = [...photoFiles, ...files].slice(0, 1);
     setPhotoFiles(newFiles);
     newFiles.forEach(f => {
       const reader = new FileReader();
@@ -553,7 +553,7 @@ export default function App() {
                   <label className="form-label">📸 Adicionar fotos (opcional)</label>
                   <div className="paypal-box">
                     <h4>✦ Anúncio com fotos — R$ 10,00</h4>
-                    <p>Adicione até 3 fotos diretamente no seu anúncio. Após o pagamento via PayPal, faça o upload abaixo.</p>
+                    <p>Adicione até 1 foto diretamente no seu anúncio. Após o pagamento via PayPal, faça o upload abaixo.</p>
 
                     <label className="form-check" style={{marginBottom:"0.8rem"}}>
                       <input type="checkbox" checked={form.wantFotos} onChange={() => setForm({...form,wantFotos:!form.wantFotos,paypalDone:false})} />
@@ -599,8 +599,8 @@ export default function App() {
                           <div>
                             <div className="alert alert-success" style={{marginBottom:"0.8rem"}}>✓ Pagamento confirmado — faça o upload das suas fotos abaixo.</div>
                             <label className="upload-zone">
-                              <input type="file" accept="image/*" multiple onChange={handlePhotoSelect} disabled={photoFiles.length >= 3} />
-                              <p>{photoFiles.length >= 3 ? "Máximo de 3 fotos atingido" : `Clique para selecionar fotos (${photoFiles.length}/3)`}</p>
+                              <input type="file" accept="image/*" multiple onChange={handlePhotoSelect} disabled={photoFiles.length >= 1} />
+                              <p>{photoFiles.length >= 1 ? "Máximo de 1 foto atingido" : `Clique para selecionar foto (${photoFiles.length}/1)`}</p>
                             </label>
                             {photoPreviews.length > 0 && (
                               <div className="upload-previews">
@@ -834,7 +834,7 @@ export default function App() {
         <div className="section-full">
           <h2>Como funciona</h2>
           <p>Todos os anúncios são gratuitos e anônimos. Para contatar um anunciante, clique em "Contatar" — isso abrirá o Element diretamente na conversa criptografada.</p>
-          <p>Quer adicionar fotos? Por apenas R$ 10,00 via PayPal, você pode incluir até 3 fotos no seu anúncio.</p>
+          <p>Quer adicionar fotos? Por apenas R$ 10,00 via PayPal, você pode incluir até 1 foto no seu anúncio.</p>
           <p style={{color:"var(--text3)",fontSize:"0.85rem",fontStyle:"italic"}}>Este espaço é dedicado a adultos (+18). Ao publicar ou responder anúncios, você confirma ser maior de idade e declara agir de forma consensual e respeitosa.</p>
         </div>
 
