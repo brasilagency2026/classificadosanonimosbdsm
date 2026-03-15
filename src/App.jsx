@@ -4,14 +4,44 @@ import { createClient } from "@supabase/supabase-js";
 // ─── Supabase client ───────────────────────────────────────────────────────────
 const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY  = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const PAYPAL_LINK   = import.meta.env.VITE_PAYPAL_LINK || "https://paypal.me/kinkonetos/10";
+const PAYPAL_EMAIL  = import.meta.env.VITE_PAYPAL_EMAIL || "seu@email.com";
 const supabase      = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ─── PayPal polling ────────────────────────────────────────────────────────────
-// Ouvre PayPal puis poll /api/verify-payment toutes les 3s (max 10 min)
+// Soumet un formulaire POST vers PayPal avec le custom UUID
+// puis poll /api/verify-payment toutes les 3s (max 10 min)
 function startPaypalPolling(paymentId, onSuccess, onTimeout, stopRef) {
-  const url = `${PAYPAL_LINK}?custom=${paymentId}`;
-  window.open(url, "_blank", "width=600,height=700");
+  // Créer un formulaire POST vers PayPal avec le champ custom
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = "https://www.paypal.com/cgi-bin/webscr";
+  form.target = "_blank";
+
+  const fields = {
+    cmd:           "_xclick",
+    business:      PAYPAL_EMAIL,
+    item_name:     "Fotos no anuncio - Kinkonetos",
+    amount:        "10.00",
+    currency_code: "BRL",
+    custom:        paymentId,
+    no_shipping:   "1",
+    return:        window.location.href,
+    cancel_return: window.location.href,
+  };
+
+  Object.entries(fields).forEach(([name, value]) => {
+    const input = document.createElement("input");
+    input.type  = "hidden";
+    input.name  = name;
+    input.value = value;
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+  document.body.removeChild(form);
+
+  // Polling toutes les 3s pendant 10 min max
   const start = Date.now();
   const interval = setInterval(async () => {
     if (Date.now() - start > 10 * 60 * 1000) {
