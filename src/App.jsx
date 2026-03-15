@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { v4 as uuidv4 } from "uuid";
 
 // ─── Supabase client ───────────────────────────────────────────────────────────
 const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL;
@@ -536,7 +535,7 @@ export default function App() {
                         {paymentStatus === "idle" && (
                           <div>
                             <button className="btn btn-gold" style={{width:"100%"}} onClick={() => {
-                              const pid = uuidv4();
+                              const pid = crypto.randomUUID();
                               setPaymentId(pid);
                               setPaymentStatus("waiting");
                               startPaypalPolling(
