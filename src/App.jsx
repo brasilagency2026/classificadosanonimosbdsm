@@ -435,7 +435,7 @@ export default function App() {
         <header className="header">
           <div className="header-inner">
             <div className="logo" onClick={() => { setShowForm(false); setSelectedAd(null); }}>
-              <span className="logo-icon">🇧🇷</span>
+              <span className="logo-icon">⛓</span>
               <div>
                 <span style={{background:"linear-gradient(135deg,#009c3b,#ffdf00,#002776)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text",fontFamily:"var(--font-head)",fontSize:"1.3rem",letterSpacing:"0.12em",fontWeight:"700"}}>BDSMBRAZIL</span>
                 <span style={{color:"var(--text2)",fontSize:"0.75rem",display:"block",letterSpacing:"0.2em"}}>anúncios • brasil</span>
