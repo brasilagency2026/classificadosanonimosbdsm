@@ -1,11 +1,33 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { v4 as uuidv4 } from "uuid";
 
 // ─── Supabase client ───────────────────────────────────────────────────────────
 const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY  = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const PAYPAL_LINK   = import.meta.env.VITE_PAYPAL_LINK || "https://paypal.me/kinkonetos/10BRL";
+const PAYPAL_LINK   = import.meta.env.VITE_PAYPAL_LINK || "https://paypal.me/kinkonetos/10";
 const supabase      = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ─── PayPal polling ────────────────────────────────────────────────────────────
+// Ouvre PayPal puis poll /api/verify-payment toutes les 3s (max 10 min)
+function startPaypalPolling(paymentId, onSuccess, onTimeout, stopRef) {
+  const url = `${PAYPAL_LINK}?custom=${paymentId}`;
+  window.open(url, "_blank", "width=600,height=700");
+  const start = Date.now();
+  const interval = setInterval(async () => {
+    if (Date.now() - start > 10 * 60 * 1000) {
+      clearInterval(interval);
+      onTimeout();
+      return;
+    }
+    try {
+      const res  = await fetch(`/api/verify-payment?payment_id=${paymentId}`);
+      const data = await res.json();
+      if (data.valid) { clearInterval(interval); onSuccess(); }
+    } catch (_) {}
+  }, 3000);
+  if (stopRef) stopRef.current = () => clearInterval(interval);
+}
 
 // ─── Constantes ────────────────────────────────────────────────────────────────
 const ESTADOS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG",
@@ -219,12 +241,15 @@ export default function App() {
   const [form, setForm] = useState({
     apelido: "", estado: "", cidade: "", sexo: "",
     posicao: [], busca: [], praticas: [], descricao: "", elementId: "",
-    wantFotos: false, paypalDone: false
+    wantFotos: false
   });
 
   const [photoFiles, setPhotoFiles]       = useState([]);   // File[]
   const [photoPreviews, setPhotoPreviews] = useState([]);   // dataURL[]
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [paymentId, setPaymentId]         = useState(null);
+  const [paymentStatus, setPaymentStatus] = useState("idle"); // idle | waiting | verified | timeout
+  const stopPollingRef = useRef(null);
 
   // ── Fetch annonces ────────────────────────────────────────────────────────
   const fetchAds = useCallback(async () => {
@@ -333,19 +358,28 @@ export default function App() {
       if (insertErr) throw insertErr;
 
       // 2. Upload photos si présentes
-      if (form.wantFotos && form.paypalDone && photoFiles.length > 0) {
+      if (form.wantFotos && paymentStatus === "verified" && photoFiles.length > 0) {
         const fotoUrls = await uploadPhotos(inserted.id);
         const { error: updateErr } = await supabase
           .from("anuncios")
           .update({ fotos: fotoUrls, destaque: true })
           .eq("id", inserted.id);
         if (updateErr) throw updateErr;
+        // Marquer le token de paiement comme utilisé
+        await fetch("/api/consume-payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ payment_id: paymentId, anuncio_id: inserted.id }),
+        });
       }
 
       // 3. Reset & refresh
       setShowForm(false);
       setFormSuccess(true);
-      setForm({ apelido:"",estado:"",cidade:"",sexo:"",posicao:[],busca:[],praticas:[],descricao:"",elementId:"",wantFotos:false,paypalDone:false });
+      setForm({ apelido:"",estado:"",cidade:"",sexo:"",posicao:[],busca:[],praticas:[],descricao:"",elementId:"",wantFotos:false });
+      setPaymentId(null);
+      setPaymentStatus("idle");
+      if (stopPollingRef.current) stopPollingRef.current();
       setPhotoFiles([]);
       setPhotoPreviews([]);
       setUploadProgress(0);
@@ -499,18 +533,40 @@ export default function App() {
 
                     {form.wantFotos && (
                       <>
-                        {!form.paypalDone ? (
+                        {paymentStatus === "idle" && (
                           <div>
-                            <a href={PAYPAL_LINK} target="_blank" rel="noopener noreferrer">
-                              <button className="btn btn-gold" style={{width:"100%"}} onClick={() => setTimeout(() => setForm(f => ({...f,paypalDone:true})), 3000)}>
-                                💳 Pagar R$ 10,00 via PayPal
-                              </button>
-                            </a>
+                            <button className="btn btn-gold" style={{width:"100%"}} onClick={() => {
+                              const pid = uuidv4();
+                              setPaymentId(pid);
+                              setPaymentStatus("waiting");
+                              startPaypalPolling(
+                                pid,
+                                () => setPaymentStatus("verified"),
+                                () => setPaymentStatus("timeout"),
+                                stopPollingRef
+                              );
+                            }}>
+                              💳 Pagar R$ 10,00 via PayPal
+                            </button>
                             <p style={{fontSize:"0.8rem",color:"var(--text3)",marginTop:"0.5rem",fontStyle:"italic"}}>
-                              Após clicar em pagar e concluir o pagamento, o upload será liberado automaticamente.
+                              Um UUID unique sera gerado pour identifier votre paiement. Após o pagamento, o upload será liberado automaticamente.
                             </p>
                           </div>
-                        ) : (
+                        )}
+                        {paymentStatus === "waiting" && (
+                          <div className="alert alert-info" style={{display:"flex",alignItems:"center",gap:"12px"}}>
+                            <div className="loading-spinner" style={{width:"20px",height:"20px",flexShrink:0}} />
+                            Aguardando confirmação do pagamento PayPal...
+                            <button className="btn btn-ghost" style={{marginLeft:"auto",fontSize:"0.7rem"}} onClick={() => { setPaymentStatus("idle"); if(stopPollingRef.current) stopPollingRef.current(); }}>Cancelar</button>
+                          </div>
+                        )}
+                        {paymentStatus === "timeout" && (
+                          <div>
+                            <div className="alert alert-error" style={{marginBottom:"0.8rem"}}>⚠ Pagamento não detectado após 10 minutos. Tente novamente.</div>
+                            <button className="btn btn-ghost" style={{width:"100%"}} onClick={() => setPaymentStatus("idle")}>Tentar novamente</button>
+                          </div>
+                        )}
+                        {paymentStatus === "verified" && (
                           <div>
                             <div className="alert alert-success" style={{marginBottom:"0.8rem"}}>✓ Pagamento confirmado — faça o upload das suas fotos abaixo.</div>
                             <label className="upload-zone">
