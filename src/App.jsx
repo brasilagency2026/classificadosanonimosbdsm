@@ -450,7 +450,7 @@ export default function App() {
 
         {/* HERO */}
         <div className="hero">
-          <div className="hero-ornament" style={{color:"var(--gold)"}}>✦ 🇧🇷 ✦</div>
+          <div className="hero-ornament">✦ ⛓ ✦</div>
           <h1>Encontre sua Conexão</h1>
           <p>Anúncios anônimos para a comunidade BDSM brasileira</p>
           <div className="hero-stats">
